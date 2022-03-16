@@ -25,12 +25,12 @@ func projectAmount(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	projectedAmount, err := countrydata.ProjectAmount(customProjectIncomeResult.CountryFrom, customProjectIncomeResult.CountryTo, customProjectIncomeResult.AmountToProject)
+	projectedAmount, parityFactor, err := countrydata.ProjectAmount(customProjectIncomeResult.CountryFromISO, customProjectIncomeResult.CountryToISO, customProjectIncomeResult.AmountToProject)
 	if err != nil {
 		return
 	}
 	customProjectIncomeResult.AmountProjected = projectedAmount
-
+	customProjectIncomeResult.MultiplicationFactor = parityFactor
 	customProjectIncomeResult.Print()
 }
 
