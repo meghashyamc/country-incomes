@@ -4,6 +4,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/iancoleman/strcase"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -22,7 +23,7 @@ func (cp *CustomProjectIncomeResult) Print() {
 
 	table.SetHeader([]string{"Projected From", "Amount", "Projected To", "Amount After Projection", "Mult. Factor"})
 
-	row := []string{cp.CountryFrom, strconv.Itoa(cp.AmountToProject), cp.CountryTo, strconv.Itoa(cp.AmountProjected), strconv.FormatFloat(cp.MultiplicationFactor, 'f', 2, 64)}
+	row := []string{strcase.ToCamel(cp.CountryFrom), strconv.Itoa(cp.AmountToProject), strcase.ToCamel(cp.CountryTo), strconv.Itoa(cp.AmountProjected), strconv.FormatFloat(cp.MultiplicationFactor, 'f', 2, 64)}
 	table.Append(row)
 
 	table.Render()

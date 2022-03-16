@@ -3,6 +3,7 @@ module github.com/meghashyamc/country-incomes
 go 1.17
 
 require (
+	github.com/iancoleman/strcase v0.2.0
 	github.com/joho/godotenv v1.4.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/sirupsen/logrus v1.8.1
