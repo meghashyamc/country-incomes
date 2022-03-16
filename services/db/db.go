@@ -3,7 +3,7 @@ package db
 type DBClient struct {
 }
 
-func NewDB() (*DBClient, error) {
+func GetDB() (*DBClient, error) {
 
 	return &DBClient{}, nil
 }

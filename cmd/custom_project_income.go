@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/meghashyamc/country-incomes/services/countrydata"
 	"github.com/meghashyamc/country-incomes/validation"
 	"github.com/spf13/cobra"
@@ -19,7 +22,7 @@ var customProjectIncomeCmd = &cobra.Command{
 }
 
 func projectAmount(cmd *cobra.Command, args []string) {
-
+	st := time.Now()
 	customProjectIncomeResult, err := validation.ValidateCustomProjectIncome(countryFrom, countryTo, amount)
 	if err != nil {
 		return
@@ -32,6 +35,7 @@ func projectAmount(cmd *cobra.Command, args []string) {
 	customProjectIncomeResult.AmountProjected = projectedAmount
 	customProjectIncomeResult.MultiplicationFactor = parityFactor
 	customProjectIncomeResult.Print()
+	fmt.Println(time.Since(st).Truncate(100000))
 }
 
 func setupCustomProjectIncomeCmd() {

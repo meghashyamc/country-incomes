@@ -6,4 +6,5 @@
 
 > What is the average income of a person in Germany as expressed in Chinese yuan or Indian rupees, taking into account purchasing power parity in China/India?
 
+
 It's a work in progress for now.

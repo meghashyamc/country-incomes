@@ -5,11 +5,17 @@ import (
 	"os"
 	"strings"
 
+	"github.com/meghashyamc/country-incomes/services/cache"
 	log "github.com/sirupsen/logrus"
 )
 
-func GetISO(country string) (string, error) {
+const isoKey = "iso"
 
+func GetISO(country string) (string, error) {
+	iso, err := cache.ReadHash(isoKey, country)
+	if err == nil && iso != "" {
+		return iso, nil
+	}
 	isoDataList, err := makeRequestAndGetData(os.Getenv("ISO_URL"))
 	if err != nil {
 		return "", err
@@ -28,7 +34,8 @@ func GetISO(country string) (string, error) {
 
 		if countryName != nil && countryISOCode != nil {
 
-			if strings.ToLower(countryName.(string)) == country {
+			if strings.Contains(strings.ToLower(countryName.(string)), country) {
+				cache.WriteHash(isoKey, country, countryISOCode.(string))
 				return countryISOCode.(string), nil
 			}
 		}
