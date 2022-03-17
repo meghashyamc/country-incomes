@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	countryFrom, countryTo *string
-	amount                 *int
+	countryFromCustomProject, countryToCustomProject *string
+	amount                                           *int
 )
 
 var customProjectIncomeCmd = &cobra.Command{
@@ -23,7 +23,7 @@ var customProjectIncomeCmd = &cobra.Command{
 
 func projectAmount(cmd *cobra.Command, args []string) {
 	st := time.Now()
-	customProjectIncomeResult, err := validation.ValidateCustomProjectIncome(countryFrom, countryTo, amount)
+	customProjectIncomeResult, err := validation.ValidateCustomProjectIncome(countryFromCustomProject, countryToCustomProject, amount)
 	if err != nil {
 		return
 	}
@@ -39,8 +39,8 @@ func projectAmount(cmd *cobra.Command, args []string) {
 }
 
 func setupCustomProjectIncomeCmd() {
-	countryFrom = customProjectIncomeCmd.Flags().StringP("from", "f", "", "the country from which to project an amount")
-	countryTo = customProjectIncomeCmd.Flags().StringP("to", "t", "", "the country to which an amount should be projected")
+	countryFromCustomProject = customProjectIncomeCmd.Flags().StringP("from", "f", "", "the country from which to project an amount")
+	countryToCustomProject = customProjectIncomeCmd.Flags().StringP("to", "t", "", "the country to which an amount should be projected")
 	amount = customProjectIncomeCmd.Flags().IntP("amount", "a", 0, "the amount to be projected")
 
 }

@@ -23,8 +23,8 @@ func Execute() {
 func init() {
 
 	setupCustomProjectIncomeCmd()
-	// setupGetProjectedStatsCmd()
+	setupGetProjectedPerCapitaIncomeCmd()
 	rootCmd.AddCommand(customProjectIncomeCmd)
-	// rootCmd.AddCommand(getProjectedStatsCmd)
+	rootCmd.AddCommand(getProjectedPerCapitaIncomeCmd)
 
 }

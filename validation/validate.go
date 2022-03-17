@@ -38,6 +38,30 @@ func ValidateCustomProjectIncome(countryFrom, countryTo *string, amount *int) (*
 	return &models.CustomProjectIncomeResult{CountryFrom: cleanedCountryFrom, CountryTo: cleanedCountryTo, CountryFromISO: countryFromISO, CountryToISO: countryToISO, AmountToProject: *amount}, nil
 }
 
+func ValidateGetProjectedPerCapitaIncome(countryFrom, countryTo *string) (*models.GetProjectedPerCapitaIncomeResult, error) {
+
+	errParamsNotSpecified := "from (country), to (country) must be specified"
+	if countryFrom == nil || countryTo == nil || *countryFrom == "" || *countryTo == "" {
+		log.Error(errParamsNotSpecified)
+		return nil, errors.New(errParamsNotSpecified)
+	}
+
+	cleanedCountryFrom := cleanString(*countryFrom)
+	cleanedCountryTo := cleanString(*countryTo)
+
+	countryFromISO, err := countrydata.GetISO(cleanedCountryFrom)
+	if err != nil {
+		return nil, err
+	}
+	countryToISO, err := countrydata.GetISO(cleanedCountryTo)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.GetProjectedPerCapitaIncomeResult{CountryFrom: cleanedCountryFrom, CountryTo: cleanedCountryTo, CountryFromISO: countryFromISO, CountryToISO: countryToISO}, nil
+
+}
+
 func cleanString(s string) string {
 	return strings.ToLower(strings.TrimSpace(s))
 }

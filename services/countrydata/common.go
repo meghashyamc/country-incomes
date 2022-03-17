@@ -10,6 +10,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const valueKey = "value"
+
 func makeRequestAndGetData(url string) ([]interface{}, error) {
 	resp, err := httprequest.Make(nil, http.MethodGet, url, nil)
 	if err != nil {
