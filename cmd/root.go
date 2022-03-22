@@ -24,7 +24,9 @@ func init() {
 
 	setupCustomProjectIncomeCmd()
 	setupGetProjectedPerCapitaIncomeCmd()
+	setupMigrate()
 	rootCmd.AddCommand(customProjectIncomeCmd)
 	rootCmd.AddCommand(getProjectedPerCapitaIncomeCmd)
+	rootCmd.AddCommand(migrateCmd)
 
 }

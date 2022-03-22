@@ -5,12 +5,16 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/meghashyamc/country-incomes/services/httprequest"
 	log "github.com/sirupsen/logrus"
 )
 
-const valueKey = "value"
+const (
+	valueKey = "value"
+	yearKey  = "date"
+)
 
 func makeRequestAndGetData(url string) ([]interface{}, error) {
 	resp, err := httprequest.Make(nil, http.MethodGet, url, nil)
@@ -41,4 +45,12 @@ func makeRequestAndGetData(url string) ([]interface{}, error) {
 	}
 
 	return actualDataList, nil
+}
+
+func forceIntFromString(s string) int {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		panic(err)
+	}
+	return i
 }

@@ -8,6 +8,7 @@ import (
 	"text/template"
 
 	"github.com/meghashyamc/country-incomes/services/cache"
+	"github.com/meghashyamc/country-incomes/services/db"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -49,13 +50,43 @@ func GetISO(country string) (string, error) {
 	return "", errors.New(errNoSuchCountry)
 }
 
-func GetGDPPerCapitaPPP(countryISO string) (int, error) {
-	currentYear := getCurrentYearAsStr()
-	return getGDPPerCapitaPPPFromAPI(countryISO, currentYear)
+func GetGDPPerCapitaPPP(countryName, countryISO string) (int, error) {
+	currentYear := getCurrentYear()
+	countryISO = strings.ToLower(countryISO)
+	gdpPerCapitaPPP, err := getGDPPerCapitaPPPFromDB(countryISO, currentYear)
+	if err == nil && gdpPerCapitaPPP > 0 {
+		return gdpPerCapitaPPP, nil
+	}
+	log.Info("getting GDP Per capita from API")
+
+	return getGDPPerCapitaPPPFromAPI(countryName, countryISO, currentYear)
 
 }
 
-func getGDPPerCapitaPPPFromAPI(countryISO, currentYear string) (int, error) {
+func insertGDPPerCapitaPPPInDB(countryName, countryISO string, year, gdpPerCapitaPPP int) {
+	dbClient, err := db.Get()
+	if err != nil {
+		log.WithFields(log.Fields{"err": err.Error()}).Info("could not reach DB to store parity data for future reference")
+		return
+	}
+
+	if err := dbClient.InsertGDPPerCapitaPPP(countryName, countryISO, year, gdpPerCapitaPPP); err != nil {
+		log.WithFields(log.Fields{"err": err.Error()}).Info("could not store GDP Per capita (PPP) data in DB for future reference")
+		return
+	}
+}
+func getGDPPerCapitaPPPFromDB(countryISO string, currentYear int) (int, error) {
+
+	dbClient, err := db.Get()
+	if err != nil {
+		return 0.0, err
+	}
+
+	return dbClient.GetGDPPerCapitaPPP(countryISO, currentYear)
+
+}
+
+func getGDPPerCapitaPPPFromAPI(countryName, countryISO string, currentYear int) (int, error) {
 	t := template.Must(template.New("gdpPerCapitaPPP").Parse(os.Getenv("GDPPPP_URL")))
 	urlBuf := &bytes.Buffer{}
 	pppDetails := PPPDetails{ISO: strings.ToLower(countryISO), CurrentYear: currentYear}
@@ -81,6 +112,8 @@ func getGDPPerCapitaPPPFromAPI(countryISO, currentYear string) (int, error) {
 		log.WithFields(log.Fields{"country_iso": countryISO}).Info(errNoData)
 		return 0, errors.New(errNoData)
 	}
+
+	insertGDPPerCapitaPPPInDB(countryName, countryISO, forceIntFromString(countryDataMap[yearKey].(string)), int(gdpPerCapitaPPP))
 
 	return int(gdpPerCapitaPPP), nil
 

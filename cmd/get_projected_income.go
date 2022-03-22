@@ -21,8 +21,8 @@ var (
 
 var getProjectedPerCapitaIncomeCmd = &cobra.Command{
 	Use:   "averageincome",
-	Short: "stats related to per capita income in a country from the perspective of another country",
-	Long:  "stats related to per capita income in a country from the perspective of another country",
+	Short: "get projected average per capita income in a country from the perspective of another country",
+	Long:  "get projected average per capita income in a country from the perspective of another country",
 	Run:   getProjectedPerCapitaIncome,
 }
 
@@ -34,7 +34,7 @@ func getProjectedPerCapitaIncome(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	gdpPerCapitaPPP, err := countrydata.GetGDPPerCapitaPPP(getProjectedPerCapitaIncomeResult.CountryFromISO)
+	gdpPerCapitaPPP, err := countrydata.GetGDPPerCapitaPPP(getProjectedPerCapitaIncomeResult.CountryFrom, getProjectedPerCapitaIncomeResult.CountryFromISO)
 	if err != nil {
 		return
 	}

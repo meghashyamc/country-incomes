@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"os"
-	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -15,16 +14,19 @@ import (
 
 type PPPDetails struct {
 	ISO         string
-	CurrentYear string
+	CurrentYear int
 }
 
 func ProjectAmount(countryFromISO, countryToISO string, amount int) (int, float64, error) {
 
-	currentYear := getCurrentYearAsStr()
+	currentYear := getCurrentYear()
+	countryFromISO = strings.ToLower(countryFromISO)
+	countryToISO = strings.ToLower(countryToISO)
 	parityFactor, err := getParityFactorFromDB(countryFromISO, countryToISO, currentYear)
 	if err == nil && parityFactor != 0 {
 		return int(float64(amount) * parityFactor), parityFactor, nil
 	}
+	log.Info("getting parity factor from API")
 	parityFactor, err = getParityFactorFromAPI(countryFromISO, countryToISO, currentYear)
 	if err != nil {
 		return 0, 0.0, err
@@ -34,10 +36,11 @@ func ProjectAmount(countryFromISO, countryToISO string, amount int) (int, float6
 
 }
 
-func getParityFactorFromAPI(countryFromISO, countryToISO, currentYear string) (float64, error) {
+func getParityFactorFromAPI(countryFromISO, countryToISO string, currentYear int) (float64, error) {
+
 	t := template.Must(template.New("parityFactor").Parse(os.Getenv("PARITY_URL")))
 	urlBufCountryFrom := &bytes.Buffer{}
-	pppDetails := PPPDetails{ISO: strings.ToLower(countryFromISO), CurrentYear: currentYear}
+	pppDetails := PPPDetails{ISO: countryFromISO, CurrentYear: currentYear}
 
 	if err := t.Execute(urlBufCountryFrom, pppDetails); err != nil {
 		log.WithFields(log.Fields{"country_iso": countryFromISO, "err": err.Error()}).Error("could not form URL to get purchasing power parity data")
@@ -45,10 +48,10 @@ func getParityFactorFromAPI(countryFromISO, countryToISO, currentYear string) (f
 	}
 
 	urlBufCountryTo := &bytes.Buffer{}
-	pppDetails.ISO = strings.ToLower(countryToISO)
+	pppDetails.ISO = countryToISO
 
 	if err := t.Execute(urlBufCountryTo, pppDetails); err != nil {
-		log.WithFields(log.Fields{"country_iso": countryFromISO, "err": err.Error()}).Error("could not form URL to get purchasing power parity data")
+		log.WithFields(log.Fields{"country_iso": countryToISO, "err": err.Error()}).Error("could not form URL to get purchasing power parity data")
 		return 0.0, err
 	}
 	countryFromParityDataList, err := makeRequestAndGetData(urlBufCountryFrom.String())
@@ -78,22 +81,38 @@ func getParityFactorFromAPI(countryFromISO, countryToISO, currentYear string) (f
 		return 0.0, errors.New(errNoDataTo)
 	}
 	errNoDataFrom := "no data is available for the country from which an amount needs to be projected"
-
 	lcuForCountryFrom, ok := countryFromDataMap[valueKey].(float64)
 	if !ok {
 		log.WithFields(log.Fields{"country_iso": countryFromISO}).Info(errNoDataFrom)
 		return 0.0, errors.New(errNoDataTo)
 	}
-	return lcuForCountryTo / lcuForCountryFrom, nil
+
+	parityFactor := lcuForCountryTo / lcuForCountryFrom
+	insertParityFactorInDB(countryFromISO, countryToISO, forceIntFromString(countryFromDataMap[yearKey].(string)), parityFactor)
+	return parityFactor, nil
 
 }
 
-func getParityFactorFromDB(countryFrom, countryTo, currentYear string) (float64, error) {
-	parityFactor, err := db.GetParityFactor(countryFrom, countryTo, currentYear)
+func insertParityFactorInDB(countryFromISO, countryToISO string, year int, parityFactor float64) {
+	dbClient, err := db.Get()
+	if err != nil {
+		log.WithFields(log.Fields{"err": err.Error()}).Info("could not reach DB to store parity data for future reference")
+		return
+	}
+
+	if err := dbClient.InsertParityFactor(countryFromISO, countryToISO, year, parityFactor); err != nil {
+		log.WithFields(log.Fields{"err": err.Error()}).Info("could not store parity data in DB for future reference")
+		return
+	}
+
+}
+func getParityFactorFromDB(countryFromISO, countryToISO string, currentYear int) (float64, error) {
+	dbClient, err := db.Get()
 	if err != nil {
 		return 0.0, err
 	}
-	return parityFactor, nil
+
+	return dbClient.GetParityFactor(countryFromISO, countryToISO, currentYear)
 }
 
 func getCountryDataMapFromParityDataList(countryISO string, countryParityDataList []interface{}) (map[string]interface{}, error) {
@@ -114,7 +133,7 @@ func getCountryDataMapFromParityDataList(countryISO string, countryParityDataLis
 	return countryDataMap, nil
 }
 
-func getCurrentYearAsStr() string {
+func getCurrentYear() int {
 
-	return strconv.Itoa(time.Now().Year())
+	return time.Now().Year()
 }

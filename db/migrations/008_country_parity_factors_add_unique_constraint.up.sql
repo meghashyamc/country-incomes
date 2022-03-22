@@ -1,0 +1,2 @@
+ALTER TABLE country_parity_factors
+ADD CONSTRAINT country_from_country_to_year UNIQUE (country_from_iso,country_to_iso,year);

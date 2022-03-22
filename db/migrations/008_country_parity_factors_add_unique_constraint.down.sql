@@ -1,0 +1,2 @@
+ALTER TABLE IF EXISTS country_parity_factors
+DROP CONSTRAINT IF EXISTS country_from_country_to_year;
